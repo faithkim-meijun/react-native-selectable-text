@@ -154,8 +154,10 @@ const mapHighlightsEmphasesRanges = (value, highlights, emphases) => {
           break;
         case 'italic':
           fontStyle.fontStyle = 'italic';
+          break;
         case 'underline':
           fontStyle.textDecorationLine = 'underline';
+          break;
       }
     });
 
