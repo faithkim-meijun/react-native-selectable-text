@@ -26,6 +26,76 @@ const combineHighlights = memoize(numbers => {
 })
 
 /**
+ * combinedHighlights: array({start: int, end: int, id: string})
+ * emphases: array({start: int, end: int, id: string, types: array('bold'|'italic'|'underline')})
+ */
+const combineStyles = memoize((highlights, emphases) => {
+  const combinedHighlights = combineHighlights(highlights);
+  const combinedArray = [];
+  const highlightOverlapIndices = [];
+
+  emphases.forEach((emphasis) => {
+    let highlightOverlaps = combinedHighlights.filter((highlight, idx) => {
+      if ((emphasis.start <= highlight.start && highlight.start < emphasis.end) || (emphasis.start < highlight.end && highlight.end <= emphasis.end)) {
+        highlightOverlapIndices.push(idx);
+        return true;
+      }
+    });
+    if (!highlightOverlaps.length) combinedArray.push({start: emphasis.start, end: emphasis.end, styles: {highlight: false, emphases: emphasis.types}});
+    else {
+      let startEndIndices = [];
+      startEndIndices.push(emphasis.start);
+      startEndIndices.push(emphasis.end);
+      highlightOverlaps.forEach((highlight) => {
+        startEndIndices.push(highlight.start);
+        startEndIndices.push(highlight.end);
+      });
+
+      startEndIndices = startEndIndices.sort((a,b)=>a-b).filter((elem, pos, array) => array.indexOf(elem) == pos);
+
+      startEndIndices.forEach((startEndIdx, idx) => {
+        if (startEndIndices[idx + 1]) {
+          let isHighlight = !!(highlightOverlaps.find((highlight) => highlight.start <= startEndIdx && startEndIdx < highlight.end));
+          let isEmphasis = emphasis.start <= startEndIdx && startEndIdx < emphasis.end;
+
+          // need to find existing:
+          let styleExist = combinedArray.find((style) => style.start === startEndIdx);
+          if (styleExist) {
+            let prev = combinedArray.pop();
+            startEndIdx = prev.start;
+          }
+
+          combinedArray.push({
+            start: startEndIdx,
+            end: startEndIndices[idx + 1],
+            styles: {
+              highlight: isHighlight,
+              emphases: isEmphasis ? emphasis.types : [],
+            }
+          });
+        }
+      });
+    }
+  });
+
+  combinedHighlights.forEach((highlight, idx) => {
+    if (!highlightOverlapIndices.includes(idx)) {
+      combinedArray.push({
+        start: highlight.start,
+        end: highlight.end,
+        styles: {
+          highlight: true,
+          emphases: [],
+        }
+      })
+    }
+  });
+
+  combinedArray.sort((a, b) => a.start - b.start || a.end - b.end);
+  return combinedArray;
+});
+
+/**
  * value: string
  * highlights: array({start: int, end: int, id: any})
  */
@@ -53,6 +123,55 @@ const mapHighlightsRanges = (value, highlights) => {
   data.push({
     isHighlight: false,
     text: value.slice(combinedHighlights[combinedHighlights.length - 1].end, value.length),
+  })
+
+  return data.filter(x => x.text)
+}
+
+/**
+ * value: string
+ * highlights: array({start: int, end: int, id: any})
+ * emphases: array({start: int, end: int, types: array('bold'|'italic'|'underline')})
+ */
+const mapHighlightsEmphasesRanges = (value, highlights, emphases) => {
+  const combinedStyles = combineStyles(highlights, emphases)
+
+  const data = [{ isHighlight: false, style: {}, text: value.slice(0, combinedStyles[0].start) }]
+
+  combinedStyles.forEach(({ start, end, styles }, idx) => {
+    let fontStyle = {};
+
+    styles.emphases.forEach(emphasis => {
+      switch (emphasis) {
+        case 'bold':
+          fontStyle.fontWeight = 'bold';
+          break;
+        case 'italic':
+          fontStyle.fontStyle = 'italic';
+        case 'underline':
+          fontStyle.textDecorationLine = 'underline';
+      }
+    });
+
+    data.push({
+      isHighlight: styles.highlight,
+      emphases: fontStyle,
+      text: value.slice(start, end),
+    })
+
+    if (combinedStyles[idx + 1]) {
+      data.push({
+        isHighlight: false,
+        emphases: {},
+        text: value.slice(end, combinedStyles[idx + 1].start),
+      })
+    }
+  })
+
+  data.push({
+    isHighlight: false,
+    emphases: {},
+    text: value.slice(combinedStyles[combinedStyles.length - 1].end, value.length),
   })
 
   return data.filter(x => x.text)
@@ -100,18 +219,16 @@ export const SelectableText = ({ onSelection, onHighlightPress, value, children,
       onSelection={onSelectionNative}
     >
       <Text selectable key={v4()}>
-        {props.highlights && props.highlights.length > 0
-          ? mapHighlightsRanges(value, props.highlights).map(({ id, isHighlight, text }) => (
+        {(props.highlights && props.highlights.length > 0) || (props.emphases && props.emphases.length > 0)
+          ? mapHighlightsEmphasesRanges(value, props.highlights, props.emphases).map(({ id, isHighlight, emphases, text }) => {
+            if (isHighlight) {
+              emphases.backgroundColor = props.highlightColor;
+            }
+            return (
               <Text
                 key={v4()}
                 selectable
-                style={
-                  isHighlight
-                    ? {
-                        backgroundColor: props.highlightColor,
-                      }
-                    : {}
-                }
+                style={emphases}
                 onPress={() => {
                   if (isHighlight) {
                     onHighlightPress && onHighlightPress(id)
@@ -120,8 +237,9 @@ export const SelectableText = ({ onSelection, onHighlightPress, value, children,
               >
                 {text}
               </Text>
-            ))
-          : value}
+            )
+          })
+          : value} 
         {props.appendToChildren ? props.appendToChildren : null}
       </Text>
     </RNSelectableText>
