@@ -30,6 +30,12 @@ const combineHighlights = memoize(numbers => {
  * emphases: array({start: int, end: int, id: string, types: array('bold'|'italic'|'underline')})
  */
 const combineStyles = memoize((highlights, emphases) => {
+  if (!highlights) {
+    highlights = [];
+  }
+  if (!emphases) {
+    emphases = [];
+  }
   const combinedHighlights = combineHighlights(highlights);
   const combinedArray = [];
   const highlightOverlapIndices = [];
