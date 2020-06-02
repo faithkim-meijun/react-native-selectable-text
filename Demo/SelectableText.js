@@ -19,7 +19,7 @@ const combineHighlights = memoize(numbers => {
           start: prev.start,
           end: Math.max(prev.end, next.end),
           id: next.id,
-          highlightColor: next.color,
+          highlightColor: next.color || 'yellow',
         })
       }
       return combined
@@ -78,7 +78,7 @@ const combineStyles = memoize((highlights, emphases) => {
             end: startEndIndices[idx + 1],
             styles: {
               highlight: isHighlight,
-              highlightColor: highlight.color,
+              highlightColor: isHighlight ? highlight.color : 'yellow',
               emphases: isEmphasis ? emphasis.types : [],
             }
           });
@@ -94,7 +94,7 @@ const combineStyles = memoize((highlights, emphases) => {
         end: highlight.end,
         styles: {
           highlight: true,
-          highlightColor: highlight.color,
+          highlightColor: highlight.color || 'yellow',
           emphases: [],
         }
       })
@@ -167,7 +167,7 @@ const mapHighlightsEmphasesRanges = (value, highlights, emphases) => {
 
     data.push({
       isHighlight: styles.highlight,
-      highlightColor: styles.highlightColor,
+      highlightColor: styles.highlightColor || 'yellow',
       emphases: fontStyle,
       text: value.slice(start, end),
     })
