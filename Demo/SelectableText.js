@@ -6,7 +6,7 @@ import memoize from 'fast-memoize'
 const RNSelectableText = requireNativeComponent('RNSelectableText')
 
 /**
- * numbers: array({start: int, end: int, id: string})
+ * numbers: array({start: int, end: int, id: string, color: string})
  */
 const combineHighlights = memoize(numbers => {
   return numbers
@@ -19,6 +19,7 @@ const combineHighlights = memoize(numbers => {
           start: prev.start,
           end: Math.max(prev.end, next.end),
           id: next.id,
+          highlightColor: next.color,
         })
       }
       return combined
@@ -26,7 +27,7 @@ const combineHighlights = memoize(numbers => {
 })
 
 /**
- * combinedHighlights: array({start: int, end: int, id: string})
+ * highlights: array({start: int, end: int, id: string, color: string})
  * emphases: array({start: int, end: int, id: string, types: array('bold'|'italic'|'underline')})
  */
 const combineStyles = memoize((highlights, emphases) => {
@@ -61,7 +62,8 @@ const combineStyles = memoize((highlights, emphases) => {
 
       startEndIndices.forEach((startEndIdx, idx) => {
         if (startEndIndices[idx + 1]) {
-          let isHighlight = !!(highlightOverlaps.find((highlight) => highlight.start <= startEndIdx && startEndIdx < highlight.end));
+          let highlight = highlightOverlaps.find((highlight) => highlight.start <= startEndIdx && startEndIdx < highlight.end)
+          let isHighlight = !!highlight;
           let isEmphasis = emphasis.start <= startEndIdx && startEndIdx < emphasis.end;
 
           // need to find existing:
@@ -76,6 +78,7 @@ const combineStyles = memoize((highlights, emphases) => {
             end: startEndIndices[idx + 1],
             styles: {
               highlight: isHighlight,
+              highlightColor: highlight.color,
               emphases: isEmphasis ? emphasis.types : [],
             }
           });
@@ -91,6 +94,7 @@ const combineStyles = memoize((highlights, emphases) => {
         end: highlight.end,
         styles: {
           highlight: true,
+          highlightColor: highlight.color,
           emphases: [],
         }
       })
@@ -163,6 +167,7 @@ const mapHighlightsEmphasesRanges = (value, highlights, emphases) => {
 
     data.push({
       isHighlight: styles.highlight,
+      highlightColor: styles.highlightColor,
       emphases: fontStyle,
       text: value.slice(start, end),
     })
@@ -228,9 +233,9 @@ export const SelectableText = ({ onSelection, onHighlightPress, value, children,
     >
       <Text selectable key={v4()}>
         {(props.highlights && props.highlights.length > 0) || (props.emphases && props.emphases.length > 0)
-          ? mapHighlightsEmphasesRanges(value, props.highlights, props.emphases).map(({ id, isHighlight, emphases, text }) => {
+          ? mapHighlightsEmphasesRanges(value, props.highlights, props.emphases).map(({ id, isHighlight, highlightColor, emphases, text }) => {
             if (isHighlight) {
-              emphases.backgroundColor = props.highlightColor;
+              emphases.backgroundColor = highlightColor;
             }
             return (
               <Text
