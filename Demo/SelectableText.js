@@ -43,7 +43,9 @@ const combineStyles = memoize((highlights, emphases) => {
 
   emphases.forEach((emphasis) => {
     let highlightOverlaps = combinedHighlights.filter((highlight, idx) => {
-      if ((emphasis.start <= highlight.start && highlight.start < emphasis.end) || (emphasis.start < highlight.end && highlight.end <= emphasis.end)) {
+      if ((emphasis.start <= highlight.start && highlight.start < emphasis.end) || (emphasis.start < highlight.end && highlight.end <= emphasis.end)
+          || (highlight.start <= emphasis.start && emphasis.start < highlight.end) || (highlight.start < emphasis.end && emphasis.end <= highlight.end)
+      ) {
         highlightOverlapIndices.push(idx);
         return true;
       }
