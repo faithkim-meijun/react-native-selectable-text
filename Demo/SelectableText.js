@@ -27,8 +27,8 @@ const combineHighlights = memoize(numbers => {
 })
 
 /**
- * highlights: array({start: int, end: int, id: string, color: string})
- * emphases: array({start: int, end: int, id: string, types: array('bold'|'italic'|'underline')})
+ * highlights: array({start: int, end: int, id: string, color: string })
+ * emphases: array({start: int, end: int, id: string, style: object() })
  */
 const combineStyles = memoize((highlights, emphases) => {
   if (!highlights) {
@@ -50,7 +50,7 @@ const combineStyles = memoize((highlights, emphases) => {
         return true;
       }
     });
-    if (!highlightOverlaps.length) combinedArray.push({start: emphasis.start, end: emphasis.end, styles: {highlight: false, emphases: emphasis.types}});
+    if (!highlightOverlaps.length) combinedArray.push({start: emphasis.start, end: emphasis.end, styles: {highlight: false, emphases: emphasis.style}});
     else {
       let startEndIndices = [];
       startEndIndices.push(emphasis.start);
@@ -81,7 +81,7 @@ const combineStyles = memoize((highlights, emphases) => {
             styles: {
               highlight: isHighlight,
               highlightColor: isHighlight ? highlight.color : 'yellow',
-              emphases: isEmphasis ? emphasis.types : [],
+              emphases: isEmphasis ? emphasis.style : {},
             }
           });
         }
@@ -97,7 +97,7 @@ const combineStyles = memoize((highlights, emphases) => {
         styles: {
           highlight: true,
           highlightColor: highlight.color || 'yellow',
-          emphases: [],
+          emphases: {},
         }
       })
     }
@@ -143,7 +143,7 @@ const mapHighlightsRanges = (value, highlights) => {
 /**
  * value: string
  * highlights: array({start: int, end: int, id: any})
- * emphases: array({start: int, end: int, types: array('bold'|'italic'|'underline')})
+ * emphases: array({start: int, end: int, style: object()})
  */
 const mapHighlightsEmphasesRanges = (value, highlights, emphases) => {
   const combinedStyles = combineStyles(highlights, emphases)
@@ -151,26 +151,10 @@ const mapHighlightsEmphasesRanges = (value, highlights, emphases) => {
   const data = [{ isHighlight: false, style: {}, text: value.slice(0, combinedStyles[0].start) }]
 
   combinedStyles.forEach(({ start, end, styles }, idx) => {
-    let fontStyle = {};
-
-    styles.emphases.forEach(emphasis => {
-      switch (emphasis) {
-        case 'bold':
-          fontStyle.fontWeight = 'bold';
-          break;
-        case 'italic':
-          fontStyle.fontStyle = 'italic';
-          break;
-        case 'underline':
-          fontStyle.textDecorationLine = 'underline';
-          break;
-      }
-    });
-
     data.push({
       isHighlight: styles.highlight,
       highlightColor: styles.highlightColor || 'yellow',
-      emphases: fontStyle,
+      emphases: styles.emphases,
       text: value.slice(start, end),
     })
 
