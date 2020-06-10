@@ -154,7 +154,7 @@ const mapHighlightsEmphasesRanges = (value, highlights, emphases) => {
     data.push({
       isHighlight: styles.highlight,
       highlightColor: styles.highlightColor || 'yellow',
-      emphases: styles.emphases,
+      emphases: {...styles.emphases},
       text: value.slice(start, end),
     })
 
