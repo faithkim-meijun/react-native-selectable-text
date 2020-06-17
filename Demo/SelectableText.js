@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, requireNativeComponent, Platform } from 'react-native'
+import { View, Text, requireNativeComponent, Platform } from 'react-native'
 import { v4 } from 'uuid'
 import memoize from 'fast-memoize'
 
