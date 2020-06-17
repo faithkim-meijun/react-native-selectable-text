@@ -211,40 +211,37 @@ export const SelectableText = ({ onSelection, onHighlightPress, value, children,
     : () => {}
 
   return (
-    <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
-      {props.prependToComponent ? props.prependToComponent : null}
-      <RNSelectableText
-        {...props}
-        onHighlightPress={onHighlightPressNative}
-        selectable
-        onSelection={onSelectionNative}
-      >
-        {props.prependToChildren ? props.prependToChildren : null}
-        <Text selectable key={v4()}>
-          {(props.highlights && props.highlights.length > 0) || (props.emphases && props.emphases.length > 0)
-            ? mapHighlightsEmphasesRanges(value, props.highlights, props.emphases).map(({ id, isHighlight, highlightColor, emphases, text }) => {
-              if (isHighlight) {
-                emphases.backgroundColor = highlightColor;
-              }
-              return (
-                <Text
-                  key={v4()}
-                  selectable
-                  style={emphases}
-                  onPress={() => {
-                    if (isHighlight) {
-                      onHighlightPress && onHighlightPress(id)
-                    }
-                  }}
-                >
-                  {text}
-                </Text>
-              )
-            })
-            : value} 
-          {props.appendToChildren ? props.appendToChildren : null}
-        </Text>
-      </RNSelectableText>
-    </View>
+    <RNSelectableText
+      {...props}
+      onHighlightPress={onHighlightPressNative}
+      selectable
+      onSelection={onSelectionNative}
+    >
+      {props.prependToChildren ? props.prependToChildren : null}
+      <Text selectable key={v4()}>
+        {(props.highlights && props.highlights.length > 0) || (props.emphases && props.emphases.length > 0)
+          ? mapHighlightsEmphasesRanges(value, props.highlights, props.emphases).map(({ id, isHighlight, highlightColor, emphases, text }) => {
+            if (isHighlight) {
+              emphases.backgroundColor = highlightColor;
+            }
+            return (
+              <Text
+                key={v4()}
+                selectable
+                style={emphases}
+                onPress={() => {
+                  if (isHighlight) {
+                    onHighlightPress && onHighlightPress(id)
+                  }
+                }}
+              >
+                {text}
+              </Text>
+            )
+          })
+          : value} 
+        {props.appendToChildren ? props.appendToChildren : null}
+      </Text>
+    </RNSelectableText>
   )
 }
