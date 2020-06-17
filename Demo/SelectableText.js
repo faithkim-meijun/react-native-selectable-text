@@ -217,6 +217,7 @@ export const SelectableText = ({ onSelection, onHighlightPress, value, children,
       selectable
       onSelection={onSelectionNative}
     >
+      {props.prependToChildren ? props.prependToChildren : null}
       <Text selectable key={v4()}>
         {(props.highlights && props.highlights.length > 0) || (props.emphases && props.emphases.length > 0)
           ? mapHighlightsEmphasesRanges(value, props.highlights, props.emphases).map(({ id, isHighlight, highlightColor, emphases, text }) => {
