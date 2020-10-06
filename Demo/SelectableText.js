@@ -12,7 +12,7 @@ const combineHighlights = memoize(numbers => {
   return numbers
     .sort((a, b) => a.start - b.start || a.end - b.end)
     .reduce(function(combined, next) {
-      if (!combined.length || combined[combined.length - 1].end < next.start) combined.push(next)
+      if (!combined.length || combined[combined.length - 1].end <= next.start) combined.push(next)
       else {
         var prev = combined.pop()
         combined.push({
