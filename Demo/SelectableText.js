@@ -241,7 +241,8 @@ export const SelectableText = ({
             >
               {text}
             </Text>
-          ))
+          )
+        })
       : [value]
     );
     if (props.appendToChildren) {
