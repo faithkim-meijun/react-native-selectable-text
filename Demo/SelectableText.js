@@ -82,7 +82,8 @@ const combineStyles = memoize((highlights, emphases) => {
               highlight: isHighlight,
               highlightColor: isHighlight ? highlight.color : 'yellow',
               emphases: isEmphasis ? emphasis.style : {},
-            }
+            },
+            id: isHighlight ? highlight.id : null,
           });
         }
       });
@@ -98,7 +99,8 @@ const combineStyles = memoize((highlights, emphases) => {
           highlight: true,
           highlightColor: highlight.color || 'yellow',
           emphases: {},
-        }
+        },
+        id: highlight.id,
       })
     }
   });
@@ -150,12 +152,13 @@ const mapHighlightsEmphasesRanges = (value, highlights, emphases) => {
 
   const data = [{ isHighlight: false, style: {}, text: value.slice(0, combinedStyles[0].start) }]
 
-  combinedStyles.forEach(({ start, end, styles }, idx) => {
+  combinedStyles.forEach(({ start, end, styles, id }, idx) => {
     data.push({
       isHighlight: styles.highlight,
       highlightColor: styles.highlightColor || 'yellow',
       emphases: {...styles.emphases},
       text: value.slice(start, end),
+      id: id,
     })
 
     if (combinedStyles[idx + 1]) {
@@ -163,6 +166,7 @@ const mapHighlightsEmphasesRanges = (value, highlights, emphases) => {
         isHighlight: false,
         emphases: {},
         text: value.slice(end, combinedStyles[idx + 1].start),
+        id: id,
       })
     }
   })
